@@ -1,15 +1,18 @@
 archive/
-qt/
-logs/
-tmp/
-perl/bin/perl
+build-peb-*/
+resources/app/perl
+squashfs-root
+src/tmp
 
-test.db
-*.qm
+.qmake.stash
+*.autosave
 Makefile
+peb.pro.*
+
 peb
 peb.exe
-peb.pro.user
-peb.pro.user*
-gdrive
+*.AppImage
+*.zip
+
+backup
 upgit

@@ -1,10 +1,10 @@
-IDI_ICON1               ICON    DISCARDABLE     "icons/camel.ico"
+IDI_ICON1  ICON  DISCARDABLE  "icon/camel.ico"
 
 # include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,2,0,0
- PRODUCTVERSION 0,2,0,0
+ FILEVERSION 1,1,1,0
+ PRODUCTVERSION 1,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -21,19 +21,18 @@ VS_VERSION_INFO VERSIONINFO
    BEGIN
     VALUE "CompanyName", "PEB Dev Team\0"
     VALUE "FileDescription", "Perl Executing Browser\0"
-    VALUE "FileVersion", "0.2.0.0\0"
-    VALUE "LegalCopyright", "GPL v.3\0"
+    VALUE "FileVersion", "1.1.1.0\0"
+    VALUE "LegalCopyright", "LGPL v.3\0"
     VALUE "OriginalFilename", "peb.exe\0"
     VALUE "ProductName", "Perl Executing Browser\0"
    END
   END
   BLOCK "VarFileInfo"
  BEGIN
-  /* The following line should only be modified for localized versions.     */
-  /* It consists of any number of WORD,WORD pairs, with each pair           */
-  /* describing a language,codepage combination supported by the file.      */
-  /*                                                                        */
-  /* For example, a file might have values "0x409,1252" indicating that it  */
+  /* The following line should only be modified for localized versions. */
+  /* It consists of any number of WORD,WORD pairs, with each pair */
+  /* describing a language,codepage combination supported by the file. */
+  /* For example, a file might have values "0x409,1252" indicating that it */
   /* supports English language (0x409) in the Windows ANSI codepage (1252). */
   VALUE "Translation", 0x409, 1252
  END

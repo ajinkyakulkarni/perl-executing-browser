@@ -1,85 +1,225 @@
 <!DOCTYPE html>
+<!--
+Perl Executing Browser Demo
+
+This program is free software;
+you can redistribute it and/or modify it under the terms of the
+GNU Lesser General Public License,
+as published by the Free Software Foundation;
+either version 3 of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.
+Dimitar D. Mitov, 2013 - 2020
+Valcho Nedelchev, 2014 - 2016
+https://github.com/ddmitov/perl-executing-browser
+-->
 <html>
 
-	<head>
-		<title>Perl Executing Browser - Demo</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta charset="utf-8">
+  <head>
+    <title>Perl Executing Browser Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
 
-		<script type="text/javascript" src="jquery/jquery-1.11.1.min.js"></script>
+    <script>
+    // Change file paths according to the operating suystem:
+    var operating_system = '';
+    var perl_interpreter = '';
+    var interactive_script = '';
 
-		<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css" media="all">
-		<link rel="stylesheet" type="text/css" href="bootstrap/css/themes/darkly-theme.css" media="all">
-		<script type="text/javascript" src="bootstrap/js/bootstrap-dropdown.js"></script>
+    if (navigator.userAgent.indexOf('Linux') != -1) {
+      operating_system = 'Linux'
+      perl_interpreter = 'perl/bin/perl';
+      interactive_script = 'perl-scripts/interactive.pl';
+    }
 
-		<style>
-			html, body{
-				height: 100%;
-			}
-			iframe{
-				width: 100%;
-				height: 83%;
-				border: none
-			}
-		</style>
-	</head>
+    if (navigator.userAgent.indexOf('Win') != -1) {
+      operating_system = 'Windows'
+      perl_interpreter = 'perl/perl/bin/wperl.exe';
+      interactive_script = 'perl-scripts/interactive-tempfile.pl';
+    }
 
-	<body>
-		<div class="navbar navbar-inverse">
+    console.log('Operating system: ' + operating_system)
+    console.log('Perl interpreter: ' + perl_interpreter)
+    console.log('Interactive script: ' + interactive_script)
 
-			<div class="navbar-header">
-				<a class="navbar-brand" href="main.html" target="iframe_a">PEB</a>
-			</div>
+      // PEB page settings:
+      var pebSettings = {}; // 'pebSettings' object name is hard-coded.
+      pebSettings.perlInterpreter = perl_interpreter;
+      pebSettings.autoStartScripts = ['interactive_one', 'interactive_two'];
+      pebSettings.cutLabel = '- Cut -';
+      pebSettings.copyLabel = '- Copy -';
+      pebSettings.pasteLabel = '- Paste -';
+      pebSettings.selectAllLabel = '- Select All -';
+      pebSettings.okLabel = 'OK';
+      pebSettings.cancelLabel = 'CANCEL';
+      pebSettings.yesLabel = 'YES';
+      pebSettings.noLabel = 'NO';
+      pebSettings.closeConfirmation =
+        'Text was entered in a form and it is going to be lost!\n' +
+        'Are you sure you want to close the application?';
 
-			<ul class="nav navbar-nav">
-				<li>
-					<a id="perl-debugger" role="button" data-toggle="dropdown" data-target="#" href="index.html">
-					Perl Debugger GUI<span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="requests">
-						<li><a href="http://local-pseudodomain/perl-debugger.function?action=select-file&command=M" target="iframe_a">List All Modules</a></li>
-						<li><a href="http://local-pseudodomain/perl-debugger.function?action=select-file&command=S" target="iframe_a">List All Subroutine Names</a></li>
-						<li><a href="http://local-pseudodomain/perl-debugger.function?action=select-file&command=V" target="iframe_a">List All Variables</a></li>
-						<li><a href="http://local-pseudodomain/perl-debugger.function?action=select-file&command=s" target="iframe_a">Step-by-Step Debugging</a></li>
-					</ul>
-				</li>
+      // PEB settings objects for auto-started Perl interactive scripts:
+      var interactive_one = {};
+      interactive_one.scriptRelativePath = interactive_script;
 
-				<li>
-					<a id="printing" role="button" data-toggle="dropdown" data-target="#" href="index.html">
-					Printing<span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="requests">
-						<li><a href="http://local-pseudodomain/print.function?action=preview" target="iframe_a">Print Preview</a></li>
-						<li><a href="http://local-pseudodomain/print.function?action=print" target="iframe_a">Print</a></li>
-					</ul>
-				</li>
+      interactive_one.inputData = function() {
+        var data = {}
+        data.mode = "unix_epoch";
+        data.user_input = document.getElementById("interactive-one-input").value;
+        $('#form-one').trigger('reset');
+        return JSON.stringify(data);
+      }
 
-				<li>
-					<a href="javascript:location.reload();" >Reload</a>
-				</li>
+      interactive_one.stdoutFunction = function (stdout) {
+        var target = document.getElementById('instance-one-output');
 
-				<li>
-					<a id="about" role="button" data-toggle="dropdown" data-target="#" href="index.html">
-					About<span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="requests">
-						<li><a href="http://local-pseudodomain/about.function?type=browser" target="iframe_a">About PEB</a></li>
-						<li><a href="http://local-pseudodomain/about.function?type=qt" target="iframe_a">About Qt</a></li>
-					</ul>
-				</li>
+        var output = null;
+        try {
+          output = JSON.parse(stdout);
+        } catch(exception) {
+          return null;
+        }
 
-				<li>
-					<a href="http://local-pseudodomain/close-window.function">Close window</a>
-				</li>
-			</ul>
-		</div>
+        var html;
+        if ("user_input" in output) {
+          html = output.time + '<br>' + output.user_input;
+        } else {
+          html = output.time;
+        };
 
-		<iframe src="main.html" name="iframe_a"></iframe>
+        target.innerHTML = html;
+      }
 
-		<footer>
-			Perl Executing Browser is an HTML GUI for Perl 5 desktop applications
-		</footer>
-	</body>
+      interactive_one.exitData = function() {
+        var data = {}
+        data.user_input = "exit";
+        return JSON.stringify(data);
+      }
+
+      var interactive_two = {};
+      interactive_two.scriptRelativePath = interactive_script;
+
+      interactive_two.inputData = function() {
+        var data = {}
+        data.mode = "local_time";
+        data.user_input = document.getElementById("interactive-two-input").value;
+        $('#form-two').trigger('reset');
+        return JSON.stringify(data);
+      }
+
+      interactive_two.stdoutFunction = function (stdout) {
+        var target = document.getElementById('instance-two-output');
+
+        var output = null;
+        try {
+          output = JSON.parse(stdout);
+        } catch(exception) {
+          return null;
+        }
+
+        var html;
+        if ("user_input" in output) {
+          html = output.time + '<br>' + output.user_input;
+        } else {
+          html = output.time;
+        };
+
+        target.innerHTML = html;
+      }
+
+      interactive_two.exitData = function() {
+        var data = {}
+        data.user_input = "exit";
+        return JSON.stringify(data);
+      }
+    </script>
+
+    <script src="jquery/jquery-1.12.4.min.js"></script>
+    <script src="bootstrap/js/bootstrap.js"></script>
+    <script src="peb-demo.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css" media="all">
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/darkly-theme.css" media="all">
+    <link rel="stylesheet" type="text/css" href="peb-demo.css" media="all">
+  </head>
+
+  <body>
+    <div class="container">
+
+      <div class="row">
+        <a class="btn btn-primary" href="select_file.dialog" role="button">Open File</a>
+        <a class="btn btn-primary" href="new_file.dialog" role="button">New File</a>
+        <a class="btn btn-primary" href="select_files.dialog">Open Multiple Files</a>
+        <a class="btn btn-primary" href="select_directory.dialog">Open Directory</a>
+      </div>
+
+      <div class="row">
+        <a class="btn btn-primary" href="perl_info.script">Perl Basic Information</a>
+        <a class="btn btn-primary" href="sqlite.script">SQLite Test</a>
+        <a class="btn btn-primary" href="javascript:clearTestData();">Clear Test Data</a>
+        <a class="btn btn-primary" href="https://duckduckgo.com/html">DuckDuckGo</a>
+        <a class="btn btn-primary" href="javascript:about();" role="button">About</a>
+      </div>
+
+      <div id="tests" class="tests"></div>
+
+      <h2>Perl Executing Browser</h2>
+
+      <div class="row">
+        <div class="col-lg-12 introduction">
+          Perl Executing Browser (PEB) is an HTML5 user interface for Perl 5 desktop applications.
+          It is a C++ Qt 5 application running local Perl 5 scripts as child processes without server.
+          Inspired by Electron and NW.js, PEB is another reuse of web technologies in
+          desktop applications with Perl doing the heavy lifting instead of Node.js.
+        </div>
+      </div>
+
+      <h3>Interactive Script Demo</h3>
+
+      <div class="row">
+        <div class="col-xs-12 form-group">
+          <form action="interactive_one.script" id="form-one">
+            <div class="input-group">
+              <input type="text" id="interactive-one-input" name="input" class="form-control"
+                placeholder="Press Enter to send data to the first interactive script instance">
+
+              <span class="input-group-addon btn btn-primary"
+                onclick="javascript:$('#form-one').trigger('reset');">Reset
+              </span>
+
+              <span class="input-group-addon btn btn-primary"
+                onclick="javascript:$('#form-one').trigger('submit');">Send
+              </span>
+            </div>
+          </form>
+        </div>
+
+        <div id="instance-one-output" class="interactive-output">&nbsp;</div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-12 form-group">
+          <form action="interactive_two.script" id="form-two">
+            <div class="input-group">
+              <input type="text" id="interactive-two-input" name="input" class="form-control"
+                placeholder="Press Enter to send data to the second interactive script instance">
+
+              <span class="input-group-addon btn btn-primary"
+                onclick="javascript:$('#form-two').trigger('reset');">Reset
+              </span>
+
+              <span class="input-group-addon btn btn-primary"
+                onclick="javascript:$('#form-two').trigger('submit');">Send
+              </span>
+            </div>
+          </form>
+        </div>
+
+        <div id="instance-two-output" class="interactive-output">&nbsp;</div>
+      </div>
+    </div>
+  </body>
 
 </html>

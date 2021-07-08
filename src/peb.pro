@@ -1,4 +1,4 @@
-# Perl Executing Browser Project File
+# Perl Executing Browser
 
 # This program is free software;
 # you can redistribute it and/or modify it under the terms of the
@@ -9,140 +9,65 @@
 # but WITHOUT ANY WARRANTY;
 # without even the implied warranty of MERCHANTABILITY or
 # FITNESS FOR A PARTICULAR PURPOSE.
-# Dimitar D. Mitov, 2013 - 2016
+# Dimitar D. Mitov, 2013 - 2020
 # Valcho Nedelchev, 2014 - 2016
 # https://github.com/ddmitov/perl-executing-browser
 
-message ("Trying to configure Perl Executing Browser for Qt $$[QT_VERSION]")
-
 lessThan (QT_MAJOR_VERSION, 5) {
-    error ("Perl Executing Browser requires at least Qt 5.1 headers.")
+    error ("Perl Executing Browser requires Qt versions 5.2 or higher")
 }
 
-equals (QT_MAJOR_VERSION, 5) {
-    lessThan (QT_MINOR_VERSION, 1) {
-        error ("Perl Executing Browser requires at least Qt 5.1 headers.")
-    }
-
-    greaterThan (QT_MINOR_VERSION, 5) {
-        packagesExist(webkitwidgets) {
-            message ("Going to build with manually added QtWebKit libraries.")
-        }
-
-        !packagesExist(webkitwidgets) {
-            error ("QtWebKit libraries are not found.")
-        }
-    }
-
-    message ("Qt Header files: $$[QT_INSTALL_HEADERS]")
-    message ("Qt Libraries: $$[QT_INSTALL_LIBS]")
-
-    macx {
-        ##########################################################
-        # MACINTOSH-SPECIFIC SETTING:
-        # To make a bundle-less binary:
-        # BUNDLE = 0
-        # CONFIG -= app_bundle
-        # By default bundle-less binary is compiled.
-        # To make a bundled binary (peb.app):
-        # BUNDLE = 1
-        # CONFIG += app_bundle
-        ##########################################################
-        BUNDLE = 0
-        CONFIG -= app_bundle
-
-        DEFINES += "BUNDLE=$$BUNDLE"
-
-        equals (BUNDLE, 0) {
-            message ("Configured without Mac OSX bundle support.")
-        }
-        equals (BUNDLE, 1) {
-            message ("Configured with Mac OSX bundle support.")
-        }
-
-        ICON = icons/camel.icns
-    }
-
-    ##########################################################
-    # ADMINISTRATIVE PRIVILEGES CHECK:
-    # To disable administrative privileges check:
-    # ADMIN_PRIVILEGES_CHECK = 0
-    # By default administrative privileges check is disabled.
-    # To enable administrative privileges check:
-    # ADMIN_PRIVILEGES_CHECK = 1
-    ##########################################################
-
-    ADMIN_PRIVILEGES_CHECK = 0
-
-    DEFINES += "ADMIN_PRIVILEGES_CHECK=$$ADMIN_PRIVILEGES_CHECK"
-
-    equals (ADMIN_PRIVILEGES_CHECK, 0) {
-        message ("Configured without administrative privileges check.")
-    }
-    equals (ADMIN_PRIVILEGES_CHECK, 1) {
-        message ("Configured with administrative privileges check.")
-    }
-
-    ##########################################################
-    # PERL DEBUGGER INTERACTION:
-    # To enable Perl debugger interaction:
-    # PERL_DEBUGGER_INTERACTION = 1
-    # By default Perl debugger interaction is enabled.
-    # To disable Perl debugger interaction:
-    # PERL_DEBUGGER_INTERACTION = 0
-    # If PEB is going to be compiled for end users and
-    # interaction with the biult-in Perl debugger is
-    # not needed or not wanted for security reasons,
-    # this functionality can be turned off.
-    ##########################################################
-
-    PERL_DEBUGGER_INTERACTION = 1
-
-    DEFINES += "PERL_DEBUGGER_INTERACTION=$$PERL_DEBUGGER_INTERACTION"
-
-    equals (PERL_DEBUGGER_INTERACTION, 0) {
-        message ("Configured without Perl debugger interaction capability.")
-    }
-    equals (PERL_DEBUGGER_INTERACTION, 1) {
-        message ("Configured with Perl debugger interaction capability.")
-    }
-
-    ##########################################################
-
-    # Binary basics:
-    # CONFIG+=debug
-    CONFIG+=release
-    TEMPLATE = app
-    TARGET = peb
-
-    # Network support:
-    QT += network
-
-    # HTTPS support:
-    CONFIG += openssl-linked
-
-    # Webkit support:
-    QT += widgets webkitwidgets
-
-    # Printing support:
-    QT += printsupport
-
-    # Source files:
-    HEADERS += peb.h
-    SOURCES += peb.cpp
-
-    # Resources:
-    RESOURCES += resources/peb.qrc
-    win32 {
-        OTHER_FILES += resources/peb.rc resources/icons/camel.ico
-        RC_FILE = resources/peb.rc
-    }
-
-    # Destination directory for the compiled binary:
-    DESTDIR = $$PWD/../
-
-    # Temporary folder:
-    MOC_DIR = tmp
-    OBJECTS_DIR = tmp
-    RCC_DIR = tmp
+lessThan (QT_MINOR_VERSION, 2) {
+    error ("Perl Executing Browser requires Qt versions 5.2 or higher")
 }
+
+win32 {
+    OTHER_FILES += resources/peb.rc resources/icon/camel.ico
+    RC_FILE = resources/peb.rc
+}
+
+# Binary basics:
+CONFIG += release
+TEMPLATE = app
+TARGET = peb
+
+QMAKE_LFLAGS += -no-pie
+
+# Network support:
+QT += network
+
+# HTTPS support:
+CONFIG += openssl-linked
+
+# HTML engine:
+QT += widgets webkitwidgets
+
+# Source files:
+SOURCES += \
+    main.cpp \
+    file-reader.cpp \
+    file-writer.cpp \
+    main-window.cpp \
+    script-handler.cpp \
+    webkit-page.cpp \
+    webkit-view.cpp
+
+# Header files:
+HEADERS += \
+    file-reader.h \
+    file-writer.h \
+    script-handler.h \
+    webkit-main-window.h \
+    webkit-page.h \
+    webkit-view.h
+
+# Resources:
+RESOURCES += resources/peb.qrc
+
+# Destination directory for the compiled binary:
+DESTDIR = $$PWD/../
+
+# Temporary folder:
+MOC_DIR = tmp
+OBJECTS_DIR = tmp
+RCC_DIR = tmp
